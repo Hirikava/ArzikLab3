@@ -48,7 +48,7 @@ namespace KazikulovArzibekLab3
                     continue;
                 }
                 
-                if(float.TryParse(tokens[0],out var x) && float.TryParse(tokens[0], out var y))
+                if(float.TryParse(tokens[0],out var x) && float.TryParse(tokens[1], out var y))
                     args.Points.Add(new PointF(x,y));
             }
             
