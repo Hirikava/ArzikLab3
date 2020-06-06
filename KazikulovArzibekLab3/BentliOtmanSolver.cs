@@ -58,14 +58,15 @@ namespace KazikulovArzibekLab3
                                 nextPoints[segments[i][segi]] = ipoint;
                                 nextPoints[segments[j][segj]] = jpoint;
 
-                                segments[i].Insert(segi + 1, figurePoints.Count - 1);
-                                segments[j].Insert(segj + 1, figurePoints.Count - 2);
+                                segments[i].Insert(segi + 1, ipoint);
+                                segments[j].Insert(segj + 1, jpoint);
                                 break;
                             }
                         }
                     }
                 }
 
+            
             var result = new List<List<PointF>>();
             var visited = nextPoints.Select(x => false).ToList();
             for (int i = 0; i < visited.Count; i++)
