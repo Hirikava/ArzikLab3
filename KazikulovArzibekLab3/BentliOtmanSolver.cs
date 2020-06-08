@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -6,7 +7,12 @@ namespace KazikulovArzibekLab3
 { 
     public static class BentliOtmanSolver
     {
-
+        public class Segment
+        {
+            public int Begin { get; set; }
+            public int End { get; set; }
+        }
+        
         public static List<List<PointF>> Solve(List<PointF> points)
         {
             var figurePoints = new List<PointF>(points);
@@ -15,58 +21,75 @@ namespace KazikulovArzibekLab3
             for (int i = 0; i < points.Count; i++)
                 nextPoints.Add((i + 1) % figurePoints.Count);
 
-            List<int>[] segments = new List<int>[points.Count];
+            List<Segment> segments = new List<Segment>(figurePoints.Count);
             for (int i = 0; i < points.Count; i++)
             {
-                segments[i] = new List<int>();
-                segments[i].Add(i);
-                segments[i].Add(nextPoints[i]);
+                segments.Add(new Segment
+                {
+                    Begin = i,
+                    End = nextPoints[i]
+                });
             }
 
 
-            for (int i = 0; i < points.Count; i++)
-                for (int j = 0; j < points.Count; j++)
+            for (int i = 0; i < segments.Count; i++)
+            {
+                for (int j = 0; j < segments.Count; j++)
                 {
-                    if (j <= i + 1 || (j == points.Count - 1 && i == 0))
+                    if (j == i)
                         continue;
 
-                    
-                    bool intersects = false;
-                    for (int segi = 0; segi < segments[i].Count - 1; segi++)
+                    var segment_i = segments[i];
+                    var segment_j = segments[j];
+                    var segment_i_begin_point = figurePoints[segment_i.Begin];
+                    var segment_i_end_point = figurePoints[segment_i.End];
+                    var segment_j_begin_point = figurePoints[segment_j.Begin];
+                    var segment_j_end_point = figurePoints[segment_j.End];
+
+                    if (segment_i_begin_point == segment_j_end_point || segment_j_begin_point == segment_i_end_point || segment_i_begin_point == segment_j_begin_point || segment_i_end_point == segment_j_end_point)
+                        continue;
+
+
+                    FindIntersection(segment_i_begin_point, segment_i_end_point, segment_j_begin_point,
+                        segment_j_end_point, out var intersects, out var intersectionPoint);
+
+                    if (intersects)
                     {
-                        if(intersects)
-                            break;
-                       
-                        for (int segj = 0; segj < segments[j].Count - 1; segj++)
+                        figurePoints.Add(intersectionPoint);
+                        figurePoints.Add(intersectionPoint);
+                        int segment_i_middle = figurePoints.Count - 1;
+                        int segment_j_middle = figurePoints.Count - 2;
+
+
+                        var segment_i_begin = segment_i.Begin;
+                        var segment_i_end = segment_i.End;
+                        var segment_j_begin = segment_j.Begin;
+                        var segment_j_end = segment_j.End;
+                        
+                        
+                        nextPoints.Add(segment_j.End);
+                        nextPoints.Add(segment_i.End);
+                        nextPoints[segment_i_begin] = segment_j_middle;
+                        nextPoints[segment_j_begin] = segment_i_middle;
+
+                        segments[i].End = segment_j_middle;
+                        segments[j].End = segment_i_middle;
+                        segments.Add(new Segment()
                         {
-                            var p1 = figurePoints[segments[i][segi]];
-                            var p2 = figurePoints[segments[i][segi + 1]];
-                            var p3 = figurePoints[segments[j][segj]];
-                            var p4 = figurePoints[segments[j][segj + 1]];
-                            
-                            FindIntersection(p1, p2, p3, p4, out intersects,out var intersectionPoint);
-
-                            if (intersects)
-                            {
-                                figurePoints.Add(intersectionPoint);
-                                figurePoints.Add(intersectionPoint);
-                                nextPoints.Add(segments[j][segj + 1]);
-                                nextPoints.Add(segments[i][segi + 1]);
-                                int ipoint = figurePoints.Count - 2;
-                                int jpoint = figurePoints.Count - 1;
-
-                                nextPoints[segments[i][segi]] = ipoint;
-                                nextPoints[segments[j][segj]] = jpoint;
-
-                                segments[i].Insert(segi + 1, ipoint);
-                                segments[j].Insert(segj + 1, jpoint);
-                                break;
-                            }
-                        }
+                            Begin = segment_i_middle,
+                            End = segment_i_end
+                        });
+                        segments.Add(new Segment()
+                        {
+                            Begin = segment_j_middle,
+                            End = segment_j_end
+                        });
                     }
                 }
+            }
 
-            
+
+
             var result = new List<List<PointF>>();
             var visited = nextPoints.Select(x => false).ToList();
             for (int i = 0; i < visited.Count; i++)
